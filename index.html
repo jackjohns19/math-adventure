@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2nd Grade Math Adventure</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            color: #333;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .problem {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #3498db;
+            border: none;
+            color: white;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .correct {
+            color: green;
+        }
+
+        .incorrect {
+            color: red;
+        }
+
+        .score {
+            margin-top: 15px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Math Adventure!</h1>
+        <div class="problem" id="problemDisplay">Let's Start!</div>
+        <div class="options" id="optionsContainer"></div>
+        <div class="feedback" id="feedbackDisplay"></div>
+        <div class="score" id="scoreDisplay">Score: 0 / 0</div>
+    </div>
+
+    <script>
+        class MathGame {
+            constructor() {
+                this.score = 0;
+                this.totalQuestions = 0;
+                this.currentProblem = null;
+            }
+
+            generateProblem() {
+                // 2nd grade math: Addition and subtraction within 20
+                const operations = ['+', '-'];
+                const operation = operations[Math.floor(Math.random() * operations.length)];
+                
+                let num1, num2, result;
+                
+                if (operation === '+') {
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    result = num1 + num2;
+                } else {
+                    // Ensure subtraction results are non-negative
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * num1) + 1;
+                    result = num1 - num2;
+                }
+
+                this.currentProblem = {
+                    num1,
+                    num2,
+                    operation,
+                    result
+                };
+
+                return this.currentProblem;
+            }
+
+            createOptions(correctAnswer) {
+                // Create 4 options, including the correct answer
+                const options = [correctAnswer];
+                
+                while (options.length < 4) {
+                    const wrongAnswer = Math.max(0, correctAnswer + Math.floor(Math.random() * 5) - 2);
+                    if (!options.includes(wrongAnswer)) {
+                        options.push(wrongAnswer);
+                    }
+                }
+
+                // Shuffle options
+                return options.sort(() => Math.random() - 0.5);
+            }
+
+            checkAnswer(selectedAnswer) {
+                this.totalQuestions++;
+                
+                if (selectedAnswer === this.currentProblem.result) {
+                    this.score++;
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        class GameUI {
+            constructor(game) {
+                this.game = game;
+                this.problemDisplay = document.getElementById('problemDisplay');
+                this.optionsContainer = document.getElementById('optionsContainer');
+                this.feedbackDisplay = document.getElementById('feedbackDisplay');
+                this.scoreDisplay = document.getElementById('scoreDisplay');
+
+                this.setupGame();
+            }
+
+            setupGame() {
+                const problem = this.game.generateProblem();
+                const options = this.game.createOptions(problem.result);
+
+                // Display problem
+                this.problemDisplay.textContent = 
+                    `${problem.num1} ${problem.operation} ${problem.num2} = ?`;
+
+                // Clear previous options
+                this.optionsContainer.innerHTML = '';
+
+                // Create option buttons
+                options.forEach(option => {
+                    const btn = document.createElement('button');
+                    btn.textContent = option;
+                    btn.classList.add('option-btn');
+                    btn.addEventListener('click', () => this.handleAnswer(option));
+                    this.optionsContainer.appendChild(btn);
+                });
+
+                // Reset feedback
+                this.feedbackDisplay.textContent = '';
+            }
+
+            handleAnswer(selectedAnswer) {
+                const isCorrect = this.game.checkAnswer(selectedAnswer);
+
+                // Update feedback
+                if (isCorrect) {
+                    this.feedbackDisplay.textContent = 'Great job! 🎉';
+                    this.feedbackDisplay.classList.add('correct');
+                    this.feedbackDisplay.classList.remove('incorrect');
+                } else {
+                    this.feedbackDisplay.textContent = 'Oops! Try again! 🤔';
+                    this.feedbackDisplay.classList.add('incorrect');
+                    this.feedbackDisplay.classList.remove('correct');
+                }
+
+                // Update score display
+                this.scoreDisplay.textContent = 
+                    `Score: ${this.game.score} / ${this.game.totalQuestions}`;
+
+                // Generate new problem after a short delay
+                setTimeout(() => {
+                    this.setupGame();
+                }, 1000);
+            }
+        }
+
+        // Initialize the game
+        const game = new MathGame();
+        const ui = new GameUI(game);
+    </script>
+</body>
+</html>
